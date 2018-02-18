@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="es" xml:lang="es" >
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+   <title>{$fsc->page->title} &lsaquo; {if="$fsc->empresa->nombrecorto"}{$fsc->empresa->nombrecorto}{else}{$fsc->empresa->nombre}{/if}</title>
+   <meta name="description" content="FacturaScripts es un software de facturación y contabilidad para pymes. Es software libre bajo licencia GNU/LGPL." />
+   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+   <meta name="generator" content="FacturaScripts" />
+   {if="file_exists('images/favicon.ico')"}
+   <link rel="shortcut icon" href="{#FS_PATH#}images/favicon.ico" />
+   {else}
+   <link rel="shortcut icon" href="{#FS_PATH#}view/img/favicon.ico" />
+   {/if}
+   <link rel="stylesheet" href="{#FS_PATH#}{$fsc->user->css}" />
+   <link rel="stylesheet" href="{#FS_PATH#}view/css/font-awesome.min.css" />
+   <link rel="stylesheet" href="{#FS_PATH#}view/css/datepicker.css" />
+   <link rel="stylesheet" href="{#FS_PATH#}view/css/custom.css?updated={$fsc->today()}" />
+   <script type="text/javascript" src="{#FS_PATH#}view/js/jquery.min.js"></script>
+   <script type="text/javascript" src="{#FS_PATH#}view/js/bootstrap.min.js"></script>
+   <script type="text/javascript" src="{#FS_PATH#}view/js/bootstrap-datepicker.js" charset="UTF-8"></script>
+   <script type="text/javascript" src="{#FS_PATH#}view/js/jquery.autocomplete.min.js"></script>
+   <script type="text/javascript" src="{#FS_PATH#}view/js/jquery-ui.min.js"></script>
+   <script type="text/javascript" src="{#FS_PATH#}view/js/bootbox.min.js"></script>
+   <script type="text/javascript" src="{$fsc->get_js_location('base.js')}"></script>
+   <script type="text/javascript" src="{$fsc->get_js_location('validaciones.js')}"></script>
+   <script type="text/javascript">
+      bootbox.setLocale("es");
+      
+      function show_precio(precio, coddivisa)
+      {
+         coddivisa || ( coddivisa = '{$fsc->empresa->coddivisa}' );
+         
+         if(coddivisa == '{$fsc->empresa->coddivisa}')
+         {
+            {if="FS_POS_DIVISA=='right'"}
+            return number_format(precio, {#FS_NF0#}, '{#FS_NF1#}', '{#FS_NF2#}')+' {$fsc->simbolo_divisa()}';
+            {else}
+            return '{$fsc->simbolo_divisa()}'+number_format(precio, {#FS_NF0#}, '{#FS_NF1#}', '{#FS_NF2#}');
+            {/if}
+         }
+         else
+         {
+            return number_format(precio, {#FS_NF0#}, '{#FS_NF1#}', '{#FS_NF2#}');
+         }
+      }
+      function show_numero(numero)
+      {
+         return number_format(numero, {#FS_NF0#}, '{#FS_NF1#}', '{#FS_NF2#}');
+      }
+   </script>
+   {loop="$fsc->extensions"}
+      {if="$value->type=='head'"}{$value->text}{/if}
+   {/loop}
+</head>
+<body>
+   <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container-fluid">
+         <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#fs-navbar-collapse-1">
+               <span class="sr-only">Menú</span>
+               <span class="icon-bar"></span>
+               <span class="icon-bar"></span>
+               <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="index.php">
+               <i class="fa fa-home" aria-hidden="true"></i>&nbsp;
+               <span class="hidden-sm">{if="FS_DEMO"}DEMO{elseif="$fsc->empresa->nombrecorto"}{$fsc->empresa->nombrecorto}{else}{$fsc->empresa->nombre}{/if}</span>
+            </a>
+         </div>
+         
+         <div class="collapse navbar-collapse" id="fs-navbar-collapse-1">
+            <ul class="nav navbar-nav">
+               {loop="$fsc->folders()"}
+               <li class='dropdown{if="$value1==$fsc->page->folder"} active{/if}'>
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+                     {if="$value1=='admin'"}
+                     <i class="fa fa-wrench hidden-xs" aria-hidden="true" title="Administración"></i>
+                     <span class="text-capitalize visible-xs">{$value1}</span>
+                     {else}
+                     <span class="text-capitalize">{$value1}</span>
+                     {/if}
+                  </a>
+                  <ul class="dropdown-menu">
+                     {loop="$fsc->pages($value1)"}
+                     <li{if="$value2->showing()"} class="active"{/if}><a href="{$value2->url()}">{$value2->title}</a></li>
+                     {/loop}
+                  </ul>
+               </li>
+               {/loop}
+               {if="count($GLOBALS['plugins'])>0"}
+               <li class="dropdown hidden-sm">
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false" title="Acceso rápido">
+                     <i class="fa fa-star hidden-xs" aria-hidden="true"></i>
+                     <span class="visible-xs">Acceso rápido</span>
+                  </a>
+                  <ul class="dropdown-menu">
+                     {$menu_ar_vacio=TRUE}
+                     {loop="$fsc->user->get_menu()"}
+                        {if="$value->important"}
+                        <li><a href="{$value->url()}">{$value->title}</a></li>
+                        {$menu_ar_vacio=FALSE}
+                        {/if}
+                     {/loop}
+                     {if="$menu_ar_vacio"}
+                     <li><a href="#">Vacío</a></li>
+                     {/if}
+                  </ul>
+               </li>
+               {/if}
+            </ul>
+            
+            <ul class="nav navbar-nav navbar-right">
+               {if="$fsc->check_for_updates()"}
+               
+               {/if}
+               
+               {if="$fsc->get_last_changes()"}
+               <li class="dropdown">
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                     <i class="fa fa-clock-o hidden-xs" aria-hidden="true"></i>
+                     <span class="visible-xs">Historial</span>
+                  </a>
+                  <ul class="dropdown-menu">
+                  {loop="$fsc->get_last_changes()"}
+                     {if="$value['nuevo']"}
+                     <li title="creado el {$value['cambio']}">
+                        <a href="{$value['url']}">
+                           <i class="fa fa-file" aria-hidden="true"></i>&nbsp; {$value['texto']}
+                        </a>
+                     </li>
+                     {else}
+                     <li title="modificado el {$value['cambio']}">
+                        <a href="{$value['url']}">
+                           <i class="fa fa-edit" aria-hidden="true"></i>&nbsp; {$value['texto']}
+                        </a>
+                     </li>
+                     {/if}
+                  {/loop}
+                  </ul>
+               </li>
+               {/if}
+               
+               
+               <li class="dropdown">
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" title="{$fsc->user->nick}">
+                     <i class="fa fa-user-circle hidden-xs" aria-hidden="true"></i>
+                     <span class="visible-xs">Usuario</span>
+                  </a>
+                  <ul class="dropdown-menu">
+                     <li>
+                        <a href="{$fsc->user->url()}">
+                           <i class="fa fa-user-circle" aria-hidden="true"></i>&nbsp; {$fsc->user->nick}
+                        </a>
+                     </li>
+                     <li class="divider"></li>
+                     <li>
+                        <a href="{$fsc->url()}&logout=TRUE">
+                           <i class="fa fa-sign-out" aria-hidden="true"></i>&nbsp; Cerrar sesión
+                        </a>
+                     </li>
+                  </ul>
+               </li>
+            </ul>
+         </div>
+      </div>
+   </nav>
+   
+   {if="$fsc->user->css=='view/css/bootstrap-yeti.min.css'"}
+   <div style="margin-bottom: 55px"></div>
+   {else}
+   <div style="margin-bottom: 70px"></div>
+   {/if}
+   
+   {if="$fsc->get_errors()"}
+   <div class="alert alert-danger alert-dismissible hidden-print" role="alert">
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+         <span aria-hidden="true">&times;</span>
+      </button>
+      <ul>{loop="$fsc->get_errors()"}<li>{$value}</li>{/loop}</ul>
+   </div>
+   {/if}
+   {if="$fsc->get_messages()"}
+   <div class="alert alert-success alert-dismissible hidden-print" role="alert">
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+         <span aria-hidden="true">&times;</span>
+      </button>
+      <ul>{loop="$fsc->get_messages()"}<li>{$value}</li>{/loop}</ul>
+   </div>
+   {/if}
+   {if="$fsc->get_advices()"}
+   <div class="alert alert-info alert-dismissible hidden-print" role="alert">
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+         <span aria-hidden="true">&times;</span>
+      </button>
+      <ul>{loop="$fsc->get_advices()"}<li>{$value}</li>{/loop}</ul>
+   </div>
+   {/if}
+   
+   {include="feedback"}
+   
+   <div class="modal fade" id="modal_iframe" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+         <div class="modal-content">
+            <div class="modal-header">
+               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+               </button>
+               <h4 class="modal-title">Modal title</h4>
+            </div>
+            <iframe src="" width="100%" height="600">
+               Este navegador no soporta frames.
+            </iframe>
+         </div>
+      </div>
+   </div>

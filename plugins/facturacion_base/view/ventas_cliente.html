@@ -1,0 +1,899 @@
+{include="header"}
+
+{if="$fsc->cliente"}
+<script type="text/javascript" src="{$fsc->get_js_location('provincias.js')}"></script>
+<script type="text/javascript">
+   function comprobar_url()
+   {
+      if(window.location.hash.substring(1) == 'cuentasb')
+      {
+         $('#tabs_cliente a[href="#cuentasb"]').tab('show');
+      }
+      else if(window.location.hash.substring(1) == 'direcciones')
+      {
+         $('#tabs_cliente a[href="#direcciones"]').tab('show');
+      }
+      else if(window.location.hash.substring(1) == 'subcuentas')
+      {
+         $('#tabs_cliente a[href="#subcuentas"]').tab('show');
+      }
+      else if(window.location.hash.substring(1) == 'stats')
+      {
+         $('#tabs_cliente a[href="#stats"]').tab('show');
+      }
+   }
+   function delete_cuenta(id)
+   {
+      bootbox.confirm({
+         message: '¿Realmente desea eliminar la cuenta bancaria #'+id+'?',
+         title: '<b>Atención</b>',
+         callback: function(result) {
+            if (result) {
+               window.location.href = '{$fsc->url()}&delete_cuenta='+id+'#cuentasb';
+            }
+         }
+      });
+   }
+   $(document).ready(function() {
+      comprobar_url();
+      $("#b_eliminar").click(function(event) {
+         event.preventDefault();
+         bootbox.confirm({
+            message: '¿Realmente desea eliminar este cliente?',
+            title: '<b>Atención</b>',
+            callback: function(result) {
+               if (result) {
+                  window.location.href = '{$fsc->ppage->url()}&delete={$fsc->cliente->codcliente}';
+               }
+            }
+         });
+      });
+      $("#b_nueva_cuenta").click(function(event) {
+         event.preventDefault();
+         $("#modal_nueva_cuenta").modal('show');
+         document.f_nueva_cuenta.descripcion.focus();
+      });
+      $("#b_nueva_direccion").click(function(event) {
+         event.preventDefault();
+         $("#modal_nueva_direccion").modal('show');
+         document.f_nueva_direccion.provincia.focus();
+      });
+   });
+</script>
+
+<div class="container-fluid">
+   <div class="row" style="margin-bottom: 10px;">
+      <div class="col-xs-3">
+         <div class="btn-group">
+            <a href="{$fsc->ppage->url()}" class="btn btn-sm btn-default">
+               <span class="glyphicon glyphicon-arrow-left"></span>
+               <span class="hidden-xs hidden-sm">&nbsp; Clientes</span>
+            </a>
+            <a href="{$fsc->url()}" class="btn btn-sm btn-default" title="Recarga la página">
+               <span class="glyphicon glyphicon-refresh"></span>
+            </a>
+         </div>
+      </div>
+      <div class="col-xs-6 text-center">
+         <h2 style="margin-top: 0px;">
+            Editar cliente <small>{$fsc->cliente->codcliente}</small>
+         </h2>
+      </div>
+      <div class="col-xs-3 text-right">
+         <a class="btn btn-sm btn-success" href="index.php?page=ventas_clientes#nuevo" title="Nuevo cliente">
+            <span class="glyphicon glyphicon-plus"></span>
+         </a>
+         {if="$fsc->allow_delete"}
+         <div class="btn-group">
+            {if="$fsc->cliente->debaja"}
+            <a href="#" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modal_debaja">
+               <span class="glyphicon glyphicon-lock"></span>
+               <span class="hidden-xs">&nbsp;De baja</span>
+            </a>
+            {elseif="$fsc->tiene_facturas()"}
+            <a href="#" class="btn btn-sm btn-warning" data-toggle="modal" data-target="#modal_debaja">
+               <span class="glyphicon glyphicon-lock"></span>
+               <span class="hidden-xs">&nbsp;Dar de baja</span>
+            </a>
+            {else}
+            <a href="#" class="btn btn-sm btn-warning" data-toggle="modal" data-target="#modal_debaja">
+                <span class="glyphicon glyphicon-lock"></span>
+                <span class="hidden-xs">&nbsp;Dar de baja</span>
+            </a>
+            <a href="#" id="b_eliminar" class="btn btn-sm btn-danger">
+               <span class="glyphicon glyphicon-trash"></span>
+               <span class="hidden-xs">&nbsp;Eliminar</span>
+            </a>
+            {/if}
+         </div>
+         {/if}
+      </div>
+   </div>
+   <div class="row">
+      <div class="col-sm-3 col-lg-2">
+         <ul id="tabs_cliente" class="nav nav-pills nav-stacked" role="tablist">
+            <li role="presentation" class="active">
+               <a href="#general" aria-controls="general" role="tab" data-toggle="tab">
+                  <span class="glyphicon glyphicon-dashboard"></span> &nbsp; Datos generales
+               </a>
+            </li>
+            <li role="presentation">
+               <a href="#cuentasb" aria-controls="cuentasb" role="tab" data-toggle="tab">
+                  <span class="glyphicon glyphicon-credit-card"></span> &nbsp; Cuentas bancarias
+               </a>
+            </li>
+            <li role="presentation">
+               <a href="#direcciones" aria-controls="direcciones" role="tab" data-toggle="tab">
+                  <span class="glyphicon glyphicon-road"></span> &nbsp; Direcciones
+               </a>
+            </li>
+            <li role="presentation">
+               <a href="#subcuentas" aria-controls="subcuentas" role="tab" data-toggle="tab">
+                  <span class="glyphicon glyphicon-book"></span> &nbsp; Subcuentas
+               </a>
+            </li>
+            {loop="$fsc->extensions"}
+               {if="$value->type=='button'"}
+               <li>
+                  <a id="b_{$value->from}" href="index.php?page={$value->from}{$value->params}&codcliente={$fsc->cliente->codcliente}">
+                     {$value->text}
+                  </a>
+               </li>
+               {elseif="$value->type=='tab'"}
+               <li role="presentation">
+                  <a href="#ext_{$key}" aria-controls="ext_{$key}" role="tab" data-toggle="tab">
+                     {$value->text}
+                  </a>
+               </li>
+               {/if}
+            {/loop}
+            <li role="presentation">
+               <a href="#stats" aria-controls="stats" role="tab" data-toggle="tab">
+                  <i class="fa fa-area-chart" aria-hidden="true"></i>&nbsp; Estadísticas
+               </a>
+            </li>
+         </ul>
+      </div>
+      <div class="col-sm-9 col-lg-10">
+         <div class="tab-content">
+            <div role="tabpanel" class="tab-pane active" id="general">
+               <form name="f_cliente" action="{$fsc->url()}" method="post" class="form">
+                  <input type="hidden" name="codcliente" value="{$fsc->cliente->codcliente}"/>
+                  <div class='panel {if="$fsc->cliente->debaja"}panel-danger{else}panel-primary{/if}'>
+                     <div class="panel-heading">
+                        <h3 class="panel-title">Datos generales</h3>
+                     </div>
+                     <div class="panel-body">
+                        <div class="row">
+                           <div class="col-sm-3">
+                              <div class="form-group">
+                                 Nombre:
+                                 <input class="form-control" type="text" name="nombre" placeholder="Nombre" onkeypress="teclear(event);return texto(event)" value="{$fsc->cliente->nombre}" autocomplete="off"/>
+                                 <p class="help-block">Nombre por el que se conoce al cliente. Para uso interno.</p>
+                              </div>
+                           </div>
+                           <div class="col-sm-4">
+                              <div class="form-group">
+                                 Razón social:
+                                 <input class="form-control" type="text" name="razonsocial" placeholder="Razon Social" onkeypress="teclear(event);return texto(event)" value="{$fsc->cliente->razonsocial}" autocomplete="off"/>
+                                 <p class="help-block">Nombre oficial del cliente, para las facturas y otros documentos.</p>
+                              </div>
+                           </div>
+                           <div class="col-sm-2">
+                              <div class="form-group">
+                                 <br/>
+                                 <select name="tipoidfiscal" class="form-control">
+                                 {$tiposids=fs_tipos_id_fiscal()}
+                                 {loop="$tiposids"}
+                                    {if="$value==$fsc->cliente->tipoidfiscal"}
+                                    <option value="{$value}" selected="">{$value}</option>
+                                    {else}
+                                    <option value="{$value}">{$value}</option>
+                                    {/if}
+                                 {/loop}
+                                 </select>
+                              </div>
+                           </div>
+                           <div class="col-sm-3">
+                              <div class="form-group">
+                                 <!--{#FS_CIFNIF#}:-->
+                                 ------------------------
+                                 <input class="form-control" type="text" onkeypress="teclear(event);return numeros(event)" name="cifnif" value="{$fsc->cliente->cifnif}" minlength="10" maxlength="13" autocomplete="off" readonly/>
+                              </div>
+                           </div>
+                        </div>
+                        <div class="row">
+                           <div class="col-sm-4">
+                              <div class="form-group">
+                                 <label class="checkbox-inline">
+                                    {if="$fsc->cliente->personafisica"}
+                                    <input type="checkbox" name="personafisica" value="TRUE" checked=""/>
+                                    {else}
+                                    <input type="checkbox" name="personafisica" value="TRUE"/>
+                                    {/if}
+                                    Es una persona física (no una empresa)
+                                 </label>
+                              </div>
+                           </div>
+                        </div>
+                        <div class="row">
+                           <div class="col-sm-2">
+                              <div class="form-group">
+                                 Teléfono 1:
+                                 <input class="form-control" type="text" name="telefono1" placeholder="XXXXXXXXXX" onkeypress="teclear(event);return numeros(event)" value="{$fsc->cliente->telefono1}" autocomplete="off"/>
+                              </div>
+                           </div>
+                           <div class="col-sm-2">
+                              <div class="form-group">
+                                 Teléfono 2:
+                                 <input class="form-control" type="text" name="telefono2" placeholder="XXXXXXXXXX" onkeypress="teclear(event);return numeros(event)" value="{$fsc->cliente->telefono2}" autocomplete="off"/>
+                              </div>
+                           </div>
+                           <div class="col-sm-2">
+                              <div class="form-group">
+                                 Fax:
+                                 <input class="form-control" type="text" name="fax" placeholder="Fax" value="{$fsc->cliente->fax}" autocomplete="off"/>
+                              </div>
+                           </div>
+                           <div class="col-sm-3">
+                              <div class="form-group">
+                                 Email:
+                                 <input class="form-control" type="text" name="email" placeholder="ejemplo@gmaul.com" title="ejemplo@gmail.com" pattern="[a-zA-Z0-9_]+([.][a-zA-Z0-9_]+)*@[a-zA-Z0-9_]+([.][a-zA-Z0-9_]+)*[.][a-zA-Z]{2,4}" value="{$fsc->cliente->email}" autocomplete="off"/>
+                              </div>
+                           </div>
+                           <div class="col-sm-3">
+                              <div class="form-group">
+                                 Web:
+                                 <input class="form-control" type="text" name="web" value="{$fsc->cliente->web}" autocomplete="off"/>
+                              </div>
+                           </div>
+                        </div>
+                        <div class="row">
+                           <div class="col-sm-3">
+                              <div class="form-group">
+                                 <a href="{$fsc->tarifa->url()}">Tarifa</a>:
+                                 <select class="form-control" name="codtarifa">
+                                    {if="$fsc->cliente->codgrupo"}
+                                    <option value="">Definida en el grupo</option>
+                                    {else}
+                                    <option value="">Ninguna</option>
+                                    {/if}
+                                    {loop="$fsc->tarifa->all()"}
+                                       {if="$value->codtarifa==$fsc->cliente->codtarifa"}
+                                       <option value="{$value->codtarifa}" selected="">{$value->nombre}</option>
+                                       {else}
+                                       <option value="{$value->codtarifa}">{$value->nombre}</option>
+                                       {/if}
+                                    {/loop}
+                                 </select>
+                              </div>
+                           </div>
+                           <div class="col-sm-3">
+                              <div class="form-group">
+                                 <a href="index.php?page=ventas_clientes#grupos">Grupo de clientes</a>:
+                                 <select class="form-control" name="codgrupo">
+                                    <option value="">Ninguno</option>
+                                    {loop="$fsc->grupo->all()"}
+                                       {if="$value->codgrupo==$fsc->cliente->codgrupo"}
+                                       <option value="{$value->codgrupo}" selected="">{$value->nombre}</option>
+                                       {else}
+                                       <option value="{$value->codgrupo}">{$value->nombre}</option>
+                                       {/if}
+                                    {/loop}
+                                 </select>
+                              </div>
+                           </div>                           
+                           <div class="col-sm-2">
+                              <div class="form-group">
+                                 <a href="{$fsc->serie->url()}" class="text-capitalize">{#FS_SERIE#}</a>:
+                                 <select class="form-control" name="codserie">
+                                    <option value="">Predeterminada</option>
+                                    {loop="$fsc->serie->all()"}
+                                       {if="$value->codserie==$fsc->cliente->codserie"}
+                                       <option value="{$value->codserie}" selected="">{$value->descripcion}</option>
+                                       {else}
+                                       <option value="{$value->codserie}">{$value->descripcion}</option>
+                                       {/if}
+                                    {/loop}
+                                 </select>
+                              </div>
+                           </div>
+                           <div class="col-sm-2">
+                              <div class="form-group">
+                                 <a href="{$fsc->divisa->url()}">Divisa</a>:
+                                 <select class="form-control" name="coddivisa">
+                                 {loop="$fsc->divisa->all()"}
+                                    {if="$value->coddivisa==$fsc->cliente->coddivisa"}
+                                    <option value="{$value->coddivisa}" selected="">{$value->descripcion}</option>
+                                    {else}
+                                    <option value="{$value->coddivisa}">{$value->descripcion}</option>
+                                    {/if}
+                                 {/loop}
+                                 </select>
+                              </div>
+                           </div>
+                           <div class="col-sm-2">
+                              <div class="form-group">
+                                 <a href="{$fsc->forma_pago->url()}">Forma de pago</a>:
+                                 <select class="form-control" name="codpago">
+                                 {loop="$fsc->forma_pago->all()"}
+                                    {if="$value->codpago==$fsc->cliente->codpago"}
+                                    <option value="{$value->codpago}" selected="">{$value->descripcion}</option>
+                                    {else}
+                                    <option value="{$value->codpago}">{$value->descripcion}</option>
+                                    {/if}
+                                 {/loop}
+                                 </select>
+                              </div>
+                           </div>
+                        </div>
+                        <div class="row">
+                           <div class="col-sm-4">
+                              <div class="form-group">
+                                 Días de pago:
+                                 <input type="text" name="diaspago" value="{$fsc->cliente->diaspago}" class="form-control" placeholder="1,15,31" autocomplete="off"/>
+                              </div>
+                           </div>
+                           <div class="col-sm-4">
+                              <div class="form-group">
+                                 Régimen {#FS_IVA#}:
+                                 <select class="form-control" name="regimeniva">
+                                 {loop="$fsc->cliente->regimenes_iva()"}
+                                    {if="$value==$fsc->cliente->regimeniva"}
+                                    <option value="{$value}" selected="">{$value}</option>
+                                    {else}
+                                    <option value="{$value}">{$value}</option>
+                                    {/if}
+                                 {/loop}
+                                 </select>
+                                 <label class="checkbox-inline">
+                                    {if="$fsc->cliente->recargo"}
+                                    <input type="checkbox" name="recargo" value="TRUE" checked=""/>
+                                    {else}
+                                    <input type="checkbox" name="recargo" value="TRUE"/>
+                                    {/if}
+                                    Aplicar recargo de equivalencia
+                                 </label>
+                              </div>
+                           </div>
+                           <div class="col-sm-4">
+                              <div class="form-group">
+                                 <a href="{$fsc->agente->url()}">Empleado asignado</a>:
+                                 <select class="form-control" name="codagente">
+                                    <option value="">Ninguno</option>
+                                    {loop="$fsc->agente->all()"}
+                                       {if="$value->codagente==$fsc->cliente->codagente"}
+                                       <option value="{$value->codagente}" selected="">{$value->get_fullname()}</option>
+                                       {else}
+                                       <option value="{$value->codagente}">{$value->get_fullname()}</option>
+                                       {/if}
+                                    {/loop}
+                                 </select>
+                              </div>
+                           </div>
+                        </div>
+                        <div class="row">
+                           <div class="col-sm-12">
+                              <div class="form-group">
+                                 Observaciones:
+                                 <textarea class="form-control" name="observaciones" onkeypress="teclear(event)" rows="3">{$fsc->cliente->observaciones}</textarea>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                     <div class="panel-footer text-right">
+                        <small class="pull-left">Fecha de alta: {$fsc->cliente->fechaalta}</small>
+                        <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled=true;this.form.submit();">
+                           <span class="glyphicon glyphicon-floppy-disk"></span>&nbsp; Guardar
+                        </button>
+                     </div>
+                  </div>
+                  
+                  {if="$fsc->cliente->codproveedor"}
+                  <div class="panel panel-success">
+                     <div class="panel-heading">
+                        <h3 class="panel-title">Este cliente también es proveedor</h3>
+                     </div>
+                     <div class="panel-body">
+                        <a href="index.php?page=compras_proveedor&cod={$fsc->cliente->codproveedor}" class="btn btn-sm btn-default">
+                           <span class="glyphicon glyphicon-user"></span>&nbsp; ver proveedor
+                        </a>
+                     </div>
+                  </div>
+                  {else}
+                  <div class="panel panel-warning">
+                     <div class="panel-heading">
+                        <h3 class="panel-title">Convertir <b>también</b> en proveedor</h3>
+                     </div>
+                     <div class="panel-body">
+                        <p class="help-block">
+                           Si lo deseas puedes convertir a este cliente también en proveedor,
+                           para poder comprar productos y servicios.
+                        </p>
+                     </div>
+                     <div class="panel-footer">
+                        <a href="{$fsc->cliente->url()}&convertir=TRUE" class="btn btn-sm btn-warning">
+                           <span class="glyphicon glyphicon-random"></span>&nbsp; Convertir
+                        </a>
+                     </div>
+                  </div>
+                  {/if}
+                  
+                  <div class="modal fade" id="modal_debaja" tabindex="-1" role="dialog">
+                     <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                           <div class="modal-header">
+                              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                 <span aria-hidden="true">&times;</span>
+                              </button>
+                              {if="$fsc->cliente->debaja"}
+                              <h4 class="modal-title">
+                                 <span class="glyphicon glyphicon-lock"></span>
+                                 &nbsp; Este cliente ha sido dado de baja
+                              </h4>
+                              <p class="help-block">Concretamente el día {$fsc->cliente->fechabaja}</p>
+                              {else}
+                              <h4 class="modal-title">
+                                 <span class="glyphicon glyphicon-lock"></span>
+                                 &nbsp; ¿Deseas dar de baja al cliente?
+                              </h4>
+                              <p class="help-block">
+                                 Este cliente ya tiene facturas o {#FS_ALBARANES#} relacionados,
+                                 por lo que no es recomendable eliminarlo.
+                              </p>
+                              {/if}
+                           </div>
+                           <div class="modal-body">
+                              <div class="form-group">
+                                 <label class="checkbox-inline">
+                                    {if="$fsc->cliente->debaja"}
+                                    <input type="checkbox" name="debaja" value="TRUE" checked=""/>
+                                    {else}
+                                    <input type="checkbox" name="debaja" value="TRUE"/>
+                                    {/if}
+                                    Dar de baja al cliente.
+                                 </label>
+                                 <p class="help-block">
+                                    Desaparecerá de las búsquedas en facturas, {#FS_ALBARANES#}, etc.
+                                    Pero seguirá en el listado de clientes por si cambias de idea.
+                                 </p>
+                              </div>
+                              <div class="text-right">
+                                 <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled=true;this.form.submit();">
+                                    <span class="glyphicon glyphicon-floppy-disk"></span>&nbsp; Guardar
+                                 </button>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+                  <div class="modal fade" id="modal_convertir" tabindex="-1" role="dialog">
+                     <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                           <div class="modal-header">
+                              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                 <span aria-hidden="true">&times;</span>
+                              </button>                              
+                              <h4 class="modal-title">
+                                 <span class="glyphicon glyphicon-lock"></span>
+                                 &nbsp; ¿Convertir en proveedor?
+                              </h4>
+                              <p class="help-block">
+                                 Se insertará un nuevo proveedor en el sistema con los mismos datos
+                              </p>
+                           </div>
+                           <div class="modal-body">
+                              <div class="form-group">                                 
+                                 <p class="help-block">
+                                    El nuevo proveedor y el cliente actual quedarán asociados internamente.
+                                 </p>
+                                 <p class="help-block">
+                                    No se clonarán los datos que no se hayan guardado previamente con el botón "Guardar".
+                                 </p>
+                              </div>
+                              <input type="hidden" name="convertir" value="TRUE"/>
+                              <div class="text-right">
+                                 <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled=true;window.location.href = '{$fsc->url()}&cod={$fsc->cliente->codcliente}&convertir=1';">
+                                    <span class="glyphicon glyphicon-random"></span>&nbsp; Convertir
+                                 </button>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </form>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="cuentasb">
+               {loop="$fsc->cuenta_banco->all_from_cliente($fsc->cliente->codcliente)"}
+               <form action="{$fsc->url()}#cuentasb" method="post" class="form">
+                  <input type="hidden" name="codcuenta" value="{$value->codcuenta}"/>
+                  <input type="hidden" name="codcliente" value="{$value->codcliente}"/>
+                  <div class='panel {if="$value->principal"}panel-primary{else}panel-default{/if}'>
+                     <div class="panel-heading">
+                        <h3 class="panel-title">Cuenta bancaria #{$value->codcuenta}</h3>
+                     </div>
+                     <div class="panel-body">
+                        <div class="row">
+                           <div class="col-sm-3">
+                              <div class="form-group">
+                                 Descripción:
+                                 <input class="form-control" type="text" name="descripcion" value="{$value->descripcion}" placeholder="Cuenta principal" autocomplete="off"/>
+                              </div>
+                           </div>
+                           <div class="col-sm-6">
+                              <div class="form-group">
+                                 <a target="_blank" href="http://es.wikipedia.org/wiki/International_Bank_Account_Number">IBAN</a>:
+                                 <input class="form-control" type="text" name="iban" value="{$value->iban}" maxlength="34" placeholder="ES12345678901234567890123456" autocomplete="off"/>
+                              </div>
+                           </div>
+                           <div class="col-sm-3">
+                              <div class="form-group">
+                                 <a target="_blank" href="http://es.wikipedia.org/wiki/Society_for_Worldwide_Interbank_Financial_Telecommunication">SWIFT</a> o BIC:
+                                 <input class="form-control" type="text" name="swift" value="{$value->swift}" maxlength="11" autocomplete="off"/>
+                              </div>
+                           </div>
+                        </div>
+                        <div class="row">
+                           <div class="col-sm-2">
+                              <div class="form-group">
+                                 Fecha del mandato:
+                                 <input type="text" name="fmandato" value="{$value->fmandato}" class="form-control datepicker" autocomplete="off"/>
+                              </div>
+                           </div>
+                           <div class="col-sm-4">
+                              <br/>
+                              <p class="help-block">
+                                 Si el cliente ha autorizado la <b>domiciliación</b> de recibos, debes especificar
+                                 la fecha del mandato: la fecha en la que autorizó.
+                              </p>
+                           </div>
+                           <div class="col-sm-2">
+                              <br/>
+                              <div class="form-group">
+                                 <label class="checkbox">
+                                    {if="$value->principal"}
+                                    <input type="checkbox" name="principal" value="TRUE" checked=""/>
+                                    {else}
+                                    <input type="checkbox" name="principal" value="TRUE"/>
+                                    {/if}
+                                    Esta es la cuenta principal del cliente
+                                 </label>
+                              </div>
+                           </div>
+                           <div class="col-sm-4 text-right">
+                              <br/>
+                              <div class="btn-group">
+                                 <a class="btn btn-sm btn-danger" onclick="delete_cuenta('{$value->codcuenta}');">
+                                    <span class="glyphicon glyphicon-trash"></span>
+                                    <span class="hidden-xs hidden-sm">&nbsp; Eliminar</span>
+                                 </a>
+                                 <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled=true;this.form.submit();">
+                                    <span class="glyphicon glyphicon-floppy-disk"></span>
+                                    <span class="hidden-xs">&nbsp; Guardar</span>
+                                 </button>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </form>
+               {/loop}
+               <div class="panel panel-success">
+                  <div class="panel-heading">
+                     <h3 class="panel-title">
+                        <a id="b_nueva_cuenta" href="#">
+                           <span class="glyphicon glyphicon-plus-sign"></span>
+                           &nbsp; Nueva cuenta bancaria...
+                        </a>
+                     </h3>
+                  </div>
+               </div>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="direcciones">
+               {loop="$fsc->cliente->get_direcciones()"}
+               <form action="{$fsc->url()}#direcciones" method="post" class="form">
+                  <input type="hidden" name="codcliente" value="{$fsc->cliente->codcliente}"/>
+                  <input type="hidden" name="coddir" value="{$value->id}"/>
+                  <div class='panel {if="$value->domfacturacion || $value->domenvio"}panel-primary{else}panel-default{/if}'>
+                     <div class="panel-heading">
+                        <h3 class="panel-title">
+                           <span class="glyphicon glyphicon-road"></span>&nbsp; {$value->id} &nbsp; | &nbsp;
+                           <span class="glyphicon glyphicon-calendar" title="Última modificación"></span>&nbsp; {$value->fecha}
+                        </h3>
+                     </div>
+                     <div class="panel-body">
+                        <div class="col-sm-3">
+                           <div class="form-group">
+                              <a href="{$fsc->pais->url()}">País</a>
+                              <select class="form-control" name="pais">
+                              {loop="$fsc->pais->all()"}
+                                 {if="$value1->codpais==$value2->codpais"}
+                                 <option value="{$value2->codpais}" selected="">{$value2->nombre}</option>
+                                 {else}
+                                 <option value="{$value2->codpais}">{$value2->nombre}</option>
+                                 {/if}
+                              {/loop}
+                              </select>
+                           </div>
+                        </div>
+                        <div class="col-sm-3">
+                           <div class="form-group">
+                              <span class="text-capitalize">{#FS_PROVINCIA#}</span>:
+                              <input class="form-control" type="text" name="provincia" placeholder="Manabi" onkeypress="teclear(event);return LetrasNumeros(event)" id="ac_provincia" value="{$value->provincia}"/>
+                           </div>
+                        </div>
+                        <div class="col-sm-3">
+                           <div class="form-group">
+                              Ciudad:
+                              <input class="form-control" type="text" name="ciudad" placeholder="Manta" onkeypress="teclear(event);return LetrasNumeros(event)" value="{$value->ciudad}"/>
+                           </div>
+                        </div>
+                        <div class="col-sm-3">
+                           <div class="form-group">
+                              Código Postal:
+                              <input class="form-control" type="text" name="codpostal" value="{$value->codpostal}" maxlength="10" autocomplete="off" readonly/>
+                           </div>
+                        </div>
+                        <div class="col-sm-6">
+                           <div class="form-group">
+                              Dirección:
+                              <input class="form-control" type="text" placeholder="Centro de Manta" onkeypress="teclear(event);return LetrasNumeros(event)" name="direccion" value="{$value->direccion}" autocomplete="off"/>
+                              <label class="checkbox-inline">
+                                 <input type="checkbox" name="direnvio" value="TRUE"{if="$value->domenvio"} checked=""{/if}/>
+                                 Dirección principal de envío
+                              </label>
+                              <label class="checkbox-inline">
+                                 <input type="checkbox" name="dirfact" value="TRUE"{if="$value->domfacturacion"} checked=""{/if}/>
+                                 Dirección principal de facturación
+                              </label>
+                           </div>
+                        </div>
+                        <div class="col-sm-3">
+                           <div class="form-group">
+                              <span class="text-capitalize">{#FS_APARTADO#}</span>:
+                              <input class="form-control" type="text" name="apartado" value="{$value->apartado}" maxlength="10" autocomplete="off"/>
+                           </div>
+                        </div>
+                        <div class="col-sm-3">
+                           <div class="form-group">
+                              Descripción:
+                              <input class="form-control" type="text" name="descripcion" value="{$value->descripcion}" autocomplete="off"/>
+                           </div>
+                        </div>
+                     </div>
+                     <div class="panel-footer text-right">
+                        <a class="btn btn-sm btn-danger pull-left" href="{$fsc->url()}&delete_dir={$value->id}#direcciones">
+                           <span class="glyphicon glyphicon-trash"></span>
+                           <span class='hidden-xs'>&nbsp; Eliminar</span>
+                        </a>
+                        <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled=true;this.form.submit();">
+                           <span class="glyphicon glyphicon-floppy-disk"></span>&nbsp; Guardar
+                        </button>
+                     </div>
+                  </div>
+               </form>
+               {/loop}
+               <div class="panel panel-success">
+                  <div class="panel-heading">
+                     <h3 class="panel-title">
+                        <a id="b_nueva_direccion" href="#">
+                           <span class="glyphicon glyphicon-plus-sign"></span>
+                           &nbsp; Nueva dirección...
+                        </a>
+                     </h3>
+                  </div>
+               </div>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="subcuentas">
+               <div class="table-responsive">
+                  <table class="table table-hover">
+                     <thead>
+                        <tr>
+                           <th class="text-left">Ejercicio</th>
+                           <th width="60"></th>
+                           <th class="text-left">Subcuenta + Descripción</th>
+                           <th class="text-right">Debe</th>
+                           <th class="text-right">Haber</th>
+                           <th class="text-right">Saldo</th>
+                        </tr>
+                     </thead>
+                     {loop="$fsc->cliente->get_subcuentas()"}
+                     <tr>
+                        <td><div class="form-control">{$value->codejercicio}</div></td>
+                        <td class="text-right">
+                           <a class="btn btn-sm btn-default" href="index.php?page=subcuenta_asociada&cli={$fsc->cliente->codcliente}&idsc={$value->idsubcuenta}">
+                              <span class="glyphicon glyphicon-wrench"></span>
+                           </a>
+                        </td>
+                        <td>
+                           <div class="form-control">
+                              <a href="{$value->url()}">{$value->codsubcuenta}</a> {$value->descripcion}
+                           </div>
+                        </td>
+                        <td>
+                           <div class="form-control text-right">{$fsc->show_precio($value->debe, $value->coddivisa)}</div>
+                        </td>
+                        <td>
+                           <div class="form-control text-right">{$fsc->show_precio($value->haber, $value->coddivisa)}</div>
+                        </td>
+                        <td>
+                           <div class="form-control text-right">{$fsc->show_precio($value->saldo, $value->coddivisa)}</div>
+                        </td>
+                     </tr>
+                     {/loop}
+                     <tr>
+                        <td colspan="6" class="text-center">
+                           <a class="btn btn-sm btn-block btn-success" href="index.php?page=subcuenta_asociada&cli={$fsc->cliente->codcliente}">
+                              Asignar una nueva subcuenta...
+                           </a>
+                        </td>
+                     </tr>
+                  </table>
+               </div>
+            </div>
+            {loop="$fsc->extensions"}
+               {if="$value->type=='tab'"}
+               <div role="tabpanel" class="tab-pane" id="ext_{$key}">
+                  <iframe src="index.php?page={$value->from}{$value->params}&cod={$fsc->cliente->codcliente}" width="100%" height="2000" frameborder="0"></iframe>
+               </div>
+               {/if}
+            {/loop}
+            <div role="tabpanel" class="tab-pane" id="stats">
+               <div class="panel panel-primary">
+                  <div class="panel-heading">
+                     <h3 class="panel-title">Estadísticas</h3>
+                  </div>
+                  <div class="panel-body">
+                     <div class="row">
+                        <div class="col-sm-2">
+                           <a target="_blank" href="index.php?page=informe_facturas&codproveedor={$fsc->cliente->codproveedor}&codcliente={$fsc->cliente->codcliente}" class="btn btn-sm btn-block btn-default">
+                              <i class="fa fa-area-chart" aria-hidden="true"></i> facturas
+                           </a>
+                        </div>
+                        <div class="col-sm-2">
+                           <a target="_blank" href="index.php?page=informe_albaranes&codproveedor={$fsc->cliente->codproveedor}&codcliente={$fsc->cliente->codcliente}" class="btn btn-sm btn-block btn-default">
+                              <i class="fa fa-area-chart" aria-hidden="true"></i> {#FS_ALBARANES#}
+                           </a>
+                        </div>
+                     </div>
+                  </div>
+                  <div class="panel-footer">
+                     <p class="help-block">
+                        Hemos rediseñado los informes para hacerlos más potentes, con muchos
+                        más filtros.
+                     </p>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+   </div>
+</div>
+
+<form name="f_nueva_cuenta" action="{$fsc->url()}#cuentasb" method="post" class="form">
+   <input type="hidden" name="codcliente" value="{$fsc->cliente->codcliente}"/>
+   <div class="modal" id="modal_nueva_cuenta">
+      <div class="modal-dialog">
+         <div class="modal-content">
+            <div class="modal-header">
+               <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+               <h4 class="modal-title">
+                  <span class="glyphicon glyphicon-credit-card"></span>
+                  &nbsp; Nueva cuenta bancaria
+               </h4>
+            </div>
+            <div class="modal-body">
+               <div class="form-group">
+                  Descripción:
+                  <input class="form-control" type="text" name="descripcion" placeholder="Banco XXX" autocomplete="off" required=""/>
+                  <label class="checkbox-inline">
+                     <input type="checkbox" name="principal" value="TRUE" checked=""/>
+                     Principal
+                  </label>
+               </div>
+               <div class="form-group">
+                  <a target="_blank" href="http://es.wikipedia.org/wiki/International_Bank_Account_Number">IBAN</a>:
+                  <input class="form-control" type="text" name="iban" maxlength="34" placeholder="ES12345678901234567890123456" autocomplete="off"/>
+               </div>
+               <div class="form-group">
+                  <a target="_blank" href="http://es.wikipedia.org/wiki/Society_for_Worldwide_Interbank_Financial_Telecommunication">SWIFT</a> o BIC:
+                  <input class="form-control" type="text" name="swift" maxlength="11" autocomplete="off"/>
+               </div>
+            </div>
+            <div class="modal-footer">
+               <button class="btn btn-sm btn-primary" type="submit">
+                  <span class="glyphicon glyphicon-floppy-disk"></span>&nbsp; Guardar
+               </button>
+            </div>
+         </div>
+      </div>
+   </div>
+</form>
+
+<form name="f_nueva_direccion" action="{$fsc->url()}#direcciones" method="post" class="form">
+   <input type="hidden" name="codcliente" value="{$fsc->cliente->codcliente}"/>
+   <input type="hidden" name="coddir" value=""/>
+   <div class="modal" id="modal_nueva_direccion">
+      <div class="modal-dialog">
+         <div class="modal-content">
+            <div class="modal-header">
+               <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+               <h4 class="modal-title">
+                  <span class="glyphicon glyphicon-road"></span>
+                  &nbsp; Nueva dirección
+               </h4>
+            </div>
+            <div class="modal-body">
+               <div class="form-group">
+                  <a href="{$fsc->pais->url()}">País</a>:
+                  <select name="pais" class="form-control">
+                  {loop="$fsc->pais->all()"}
+                     {if="$value->is_default()"}
+                     <option value="{$value->codpais}" selected="">{$value->nombre}</option>
+                     {else}
+                     <option value="{$value->codpais}">{$value->nombre}</option>
+                     {/if}
+                  {/loop}
+                  </select>
+               </div>
+               <div class="form-group">
+                  <span class="text-capitalize">{#FS_PROVINCIA#}:</span>
+                  <input id="ac_provincia2" class="form-control" type="text" name="provincia" value="{$fsc->empresa->provincia}"/>
+               </div>
+               <div class="form-group">
+                  Ciudad:
+                  <input class="form-control" type="text" name="ciudad" value="{$fsc->empresa->ciudad}"/>
+               </div>
+               <div class="form-group">
+                  Código Postal:
+                  <input class="form-control" type="text" name="codpostal" maxlength="10" autocomplete="off"/>
+               </div>
+               <div class="form-group">
+                  Dirección:
+                  <input class="form-control" type="text" name="direccion" autocomplete="off"/>
+               </div>
+               <div class="form-group">
+                  <span class="text-capitalize">{#FS_APARTADO#}:</span>
+                  <input class="form-control" type="text" name="apartado" maxlength="10" autocomplete="off"/>
+               </div>
+               <div class="form-group">
+                  Descripción:
+                  <input class="form-control" type="text" name="descripcion" value="Nueva dirección"/>
+                  <label class="checkbox-inline">
+                     <input type="checkbox" name="direnvio" id="ndirenvio" value="TRUE" checked=""/>
+                     Dirección de envío
+                  </label>
+                  <label class="checkbox-inline">
+                     <input type="checkbox" name="dirfact" id="ndirfact" value="TRUE" checked=""/>
+                     Dirección de facturación
+                  </label>
+               </div>
+            </div>
+            <div class="modal-footer">
+               <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled=true;this.form.submit();">
+                  <span class="glyphicon glyphicon-floppy-disk"></span>&nbsp; Guardar
+               </button>
+            </div>
+         </div>
+      </div>
+   </div>
+</form>
+{else}
+<div class="thumbnail">
+   <img src="{#FS_PATH#}view/img/fuuu_face.png" alt="fuuuuu"/>
+</div>
+{/if}
+
+{include="footer"}
+<script type = "text/javascript">
+    var flag = false;
+     var teclaAnterior = "";
+     
+     function teclear(event) {
+       teclaAnterior = teclaAnterior + " " + event.keyCode;
+       var arregloTA = teclaAnterior.split(" ");
+       if (event.keyCode == 32 && arregloTA[arregloTA.length - 2] == 32) {
+         event.preventDefault();
+       }
+     }
+  </script>

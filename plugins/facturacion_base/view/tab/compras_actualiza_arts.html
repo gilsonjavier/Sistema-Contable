@@ -1,0 +1,108 @@
+{include="header2"}
+
+<script type="text/javascript">
+   function actualizar_pvps()
+   {
+      document.f_actualizador.pvps.checked = true;
+      document.f_actualizador.submit();
+      return false;
+   }
+</script>
+
+<div class="container-fluid" style="margin-top: 10px;">
+   <div class="row">
+      <div class="col-sm-9">
+         <p class="help-block">
+            Desde aquí puedes actualizar los datos de <b>tus artículos</b>
+            a partir de las líneas del <b>{$fsc->tipodoc}</b>.
+            Usa los <span class="glyphicon glyphicon-check" aria-hidden="true"></span>
+            para elegir qué es lo que quieres actualizar y lo que no.
+            Ten en cuenta que se almacenan tanto los datos de compra
+            como los de venta.
+         </p>
+      </div>
+      <div class="col-sm-3 text-right">
+         <a href="#" class="btn btn-sm btn-info" onclick="return actualizar_pvps()">Actualizar PVP</a>
+      </div>
+   </div>
+</div>
+
+{if="$fsc->documento"}
+<form name="f_actualizador" action="{$fsc->url()}" method="post" class="form">
+   <div class="table-responsive">
+      <table class="table table-hover">
+         <thead>
+            <tr>
+               <th width="40"></th>
+               <th width="180">Ref. Proveedor</th>
+               <th width="150">Referencia</th>
+               <th>Descripción</th>
+               <th width="180">Código de barras</th>
+               <th class="text-right" width="130">Nuevo<br/>precio de compra</th>
+               <th class="text-right" width="110">% dto. compra</th>
+               <th class="text-right" width="130">Nuevo<br/>precio de venta</th>
+            </tr>
+         </thead>
+         {loop="$fsc->lineas"}
+            {if="$value->referencia"}
+            <tr>
+               <td class="text-right">
+                  <div class="checkbox">
+                     <input class="cb_update" type="checkbox" name="update_{$value->idlinea}" value="TRUE" checked="checked"/>
+                  </div>
+               </td>
+               <td><input type="text" name="refproveedor_{$value->idlinea}" value="{$value->refproveedor}" class="form-control" autocomplete="off"/></td>
+               <td><input type="text" name="referencia_{$value->idlinea}" value="{$value->referencia}" class="form-control" disabled="disabled"/></td>
+               <td><input type="text" name="descripcion_{$value->idlinea}" value="{$value->descripcion}" class="form-control" autocomplete="off"/></td>
+               <td><input type="text" name="codbarras_{$value->idlinea}" value="{$value->codbarras}" class="form-control" autocomplete="off"/></td>
+               <td class="info">
+                  <input type="text" name="coste_{$value->idlinea}" value="{$value->pvpunitario}" class="form-control text-right" title="Actual: {$fsc->show_precio($value->precio_compra)}" autocomplete="off"/>
+               </td>
+               <td class="info">
+                  <input type="text" name="dto_{$value->idlinea}" value="{$value->dtopor}" class="form-control text-right" title="Actual: {$fsc->show_numero($value->dto_compra)} %" autocomplete="off"/>
+               </td>
+               <td class="info">
+                  <input type="text" name="pvp_{$value->idlinea}" value="{$value->pvpunitario}" class="form-control text-right" title="Actual: {$fsc->show_precio($value->precio_venta)}" autocomplete="off"/>
+               </td>
+            </tr>
+            {/if}
+         {/loop}
+         <tr>
+            <td colspan="3"></td>
+            <td>
+               <div class="checkbox">
+                  <label>
+                     <input type="checkbox" name="descripciones" value="TRUE"/> actualizar descripciones
+                  </label>
+               </div>
+            </td>
+            <td>
+               <div class="checkbox">
+                  <label>
+                     <input type="checkbox" name="codbarras" value="TRUE"/> actualizar códigos de barras
+                  </label>
+               </div>
+            </td>
+            <td colspan="3">
+               <div class="checkbox text-right">
+                  <label>
+                     <input type="checkbox" name="pvps" value="TRUE"/> actualizar precios de venta
+                  </label>
+               </div>
+            </td>
+         </tr>
+      </table>
+   </div>
+   <div class="container-fluid">
+      <div class="row">
+         <div class="col-sm-12 text-right">
+            <button class="btn btn-sm btn-primary" type="submit" onclick="this.disabled=true;this.form.submit();">
+               <span class="glyphicon glyphicon-floppy-disk"></span> &nbsp; Guardar
+            </button>
+         </div>
+      </div>
+   </div>
+</form>
+{/if}
+
+{include="footer2"}

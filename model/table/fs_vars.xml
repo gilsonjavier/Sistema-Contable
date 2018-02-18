@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Document   : fs_vars.xml
+    Author     : Carlos Garcia Gomez
+    Description:
+        Estructura de la tabla fs_vars.
+-->
+<tabla>
+    <columna>
+        <nombre>name</nombre>
+        <tipo>character varying(35)</tipo>
+        <nulo>NO</nulo>
+    </columna>
+    <columna>
+        <nombre>varchar</nombre>
+        <tipo>text</tipo>
+        <nulo>YES</nulo>
+    </columna>
+    <restriccion>
+        <nombre>fs_vars_pkey</nombre>
+        <consulta>PRIMARY KEY (name)</consulta>
+    </restriccion>
+</tabla>

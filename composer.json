@@ -1,0 +1,19 @@
+{
+    "name": "FacturaScripts/FacturaScripts_2015",
+    "description": "Software de facturación y contabilidad para pymes, fácil, libre y con actualizaciones constantes.",
+    "authors": [
+        {
+            "name": "Carlos García Gómez",
+            "email": "neorazorx@gmail.com"
+        }
+    ],
+    "require": {
+        "phpmailer/phpmailer": "dev-master",
+        "components/jquery": "dev-master",
+        "components/font-awesome": "dev-master",
+        "mk-j/php_xlsxwriter": "dev-master",
+        "twbs/bootstrap": "dev-master",
+        "thomaspark/bootswatch": "v4.x-dev",
+        "makeusabrew/bootbox": "dev-master"
+    }
+}

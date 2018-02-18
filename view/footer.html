@@ -1,0 +1,40 @@
+   {if="FS_DEMO"}
+
+   {else}
+   <hr style="margin-top: 50px;" class="hidden-print"/>
+   
+   <div class="container-fluid hidden-print" style="margin-bottom: 10px;">
+      <div class="row">
+         <div class="col-sm-12">
+            {if="FS_DB_HISTORY"}
+               <div class="panel panel-default hidden-print">
+                  <div class="panel-heading">
+                     <h3 class="panel-title">Consultas SQL:</h3>
+                  </div>
+                  <div class="panel-body">
+                     <ol style="font-size: 11px; margin: 0px; padding: 0px 0px 0px 20px;">
+                        {loop="$fsc->get_db_history()"}<li>{$value}</li>{/loop}
+                     </ol>
+                  </div>
+               </div>
+               {loop="$fsc->extensions"}
+                  {if="$value->type=='hidden_iframe'"}
+                  <iframe src="index.php?page={$value->from}{$value->params}" width="100%"></iframe>
+                  {/if}
+               {/loop}
+            {else}
+               <div class="hidden">
+               {loop="$fsc->extensions"}
+                  {if="$value->type=='hidden_iframe'"}
+                  <iframe src="index.php?page={$value->from}{$value->params}"></iframe>
+                  {/if}
+               {/loop}
+               </div>
+            {/if}
+         </div>
+      </div>
+      
+   </div>
+   {/if}
+</body>
+</html>

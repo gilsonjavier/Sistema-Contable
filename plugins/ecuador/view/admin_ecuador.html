@@ -1,0 +1,69 @@
+{include="header"}
+
+<div class="container-fluid">
+   <div class="row">
+      <div class="col-sm-12">
+         <div class="page-header">
+            <h1>
+               <span class="glyphicon glyphicon-globe" aria-hidden="true"></span> Ecuador
+               <a class="btn btn-xs btn-default" href="{$fsc->url()}" title="Recargar la página">
+                  <span class="glyphicon glyphicon-refresh"></span>
+               </a>
+            </h1>
+            
+         </div>
+      </div>
+   </div>
+   <div class="row">
+      <div class="col-sm-6">
+         {if="$fsc->empresa->coddivisa=='USD'"}
+         <a href="{$fsc->url()}&opcion=moneda" class="btn btn-block btn-success">
+            <span class="glyphicon glyphicon-ok"></span> &nbsp; Establecer USD como moneda por defecto
+         </a>
+         {else}
+         <a href="{$fsc->url()}&opcion=moneda" class="btn btn-block btn-default">
+            <span class="badge">1</span> &nbsp; Establecer USD como moneda por defecto
+         </a>
+         {/if}
+         <br/>
+      </div>
+      <div class="col-sm-6">
+         {if="$fsc->empresa->codpais=='ECU'"}
+         <a href="{$fsc->url()}&opcion=pais" class="btn btn-block btn-success">
+            <span class="glyphicon glyphicon-ok"></span> &nbsp; Establecer Ecuador como pais por defecto
+         </a>
+         {else}
+         <a href="{$fsc->url()}&opcion=pais" class="btn btn-block btn-default">
+            <span class="badge">2</span> &nbsp; Establecer Ecuador como pais por defecto
+         </a>
+         {/if}
+         <br/>
+      </div>
+      <div class="col-sm-6">
+         {if="$fsc->adap_conf"}
+         <a href="{$fsc->url()}&opcion=adap_conf" class="btn btn-block btn-success">
+            <span class="glyphicon glyphicon-ok"></span> &nbsp; Establecer Hora y Traduciones
+         </a>
+         {else}
+         <a href="{$fsc->url()}&opcion=adap_conf" class="btn btn-block btn-default">
+            <span class="badge">3</span> &nbsp; Establecer Hora y Traducciones
+         </a>
+         {/if}
+         <br/>
+      </div>
+      <div class="col-sm-6">
+         
+         {if="$fsc->impuestos_ok()"}
+         <a href="{$fsc->url()}&opcion=impuestos" target="_blank" class="btn btn-block btn-success">
+            <span class="glyphicon glyphicon-ok"></span> &nbsp; Agregar Impuestos
+         </a>
+         {else}
+         <a href="{$fsc->url()}&opcion=impuestos" target="_blank" class="btn btn-block btn-default">
+            <span class="badge">4</span> &nbsp; Agregar Impuestos
+         </a>
+         {/if}
+      </div>
+   </div>
+</div>
+
+{include="footer"}

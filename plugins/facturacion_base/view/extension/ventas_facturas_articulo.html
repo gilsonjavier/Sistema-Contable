@@ -1,0 +1,69 @@
+{include="header"}
+
+<div class="container-fluid">
+   <div class="row">
+      <div class="col-sm-12">
+         <div class="page-header">
+            <h1>
+               <span class="glyphicon glyphicon-duplicate"></span>&nbsp;
+               Facturas con el artículo
+               <small>
+                  <a href="{$fsc->articulo->url()}">{$fsc->articulo->referencia}</a>
+               </small>
+            </h1>
+         </div>
+      </div>
+   </div>
+</div>
+
+<div class="table-responsive">
+   <table class="table table-hover">
+      <thead>
+         <tr>
+            <th class="text-left">Factura + Cliente</th>
+            <th class="text-right">Cantidad</th>
+            <th class="text-left">Artículo</th>
+            <th class="text-right">Total+{#FS_IVA#}</th>
+            <th class="text-right">Fecha</th>
+         </tr>
+      </thead>
+      {loop="$fsc->resultados"}
+      <tr class="clickableRow{if="$value->cantidad<1"} warning{/if}" href="{$value->url()}">
+         <td>
+            <a href="{$value->url()}">{$value->show_codigo()}</a>
+            {$value->show_nombrecliente()}
+         </td>
+         <td class="text-right">{$value->cantidad}</td>
+         <td>
+            <a href="{$value->articulo_url()}" class="cancel_clickable">{$value->referencia}</a>
+            {$value->descripcion}
+         </td>
+         <td class="text-right">{$fsc->show_precio($value->total_iva())}</td>
+         <td class="text-right">{$value->show_fecha()}</td>
+      </tr>
+      {else}
+      <tr class="warning">
+         <td colspan="5">Sin resultados.</td>
+      </tr>
+      {/loop}
+   </table>
+</div>
+
+<ul class="pager">
+   {if="$fsc->offset>0"}
+   <li class="previous">
+      <a href="{$fsc->url()}&ref={$fsc->articulo->referencia}&offset={$fsc->offset-FS_ITEM_LIMIT}">
+         <span class="glyphicon glyphicon-chevron-left"></span>&nbsp; Anteriores
+      </a>
+   </li>
+   {/if}
+   {if="count($fsc->resultados)==FS_ITEM_LIMIT"}
+   <li class="next">
+      <a href="{$fsc->url()}&ref={$fsc->articulo->referencia}&offset={$fsc->offset+FS_ITEM_LIMIT}">
+         Siguientes &nbsp;<span class="glyphicon glyphicon-chevron-right"></span>
+      </a>
+   </li>
+   {/if}
+</ul>
+
+{include="footer"}
